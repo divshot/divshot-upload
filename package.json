@@ -5,8 +5,8 @@
   "main": "lib/upload.js",
   "scripts": {
     "test": "npm run test-server && npm run test-browser",
-    "test-server": "node_modules/.bin/mocha test/server/**/*.js",
-    "test-browser": "node_modules/.bin/testling | faucet"
+    "test-server": "node_modules/.bin/mocha --reporter spec test/server/**/*.js",
+    "test-browser": "node_modules/.bin/testling | node_modules/.bin/tspec"
   },
   "repository": {
     "type": "git",
@@ -30,13 +30,14 @@
     "faucet": "0.0.0",
     "grunt-shell": "~0.6.1",
     "mocha": "~1.16.2",
-    "expect.js": "~0.2.0"
+    "expect.js": "~0.2.0",
+    "tap-spec": "0.0.1"
   },
   "testling": {
     "files": [
       "test/browser/**/*.js"
     ],
-    "harness" : "mocha",
+    "harness": "mocha",
     "browsers": [
       "iexplore/10.0",
       "iexplore/9.0",
