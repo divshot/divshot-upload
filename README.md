@@ -4,7 +4,7 @@ Upload app files to Divshot
 
 ## Install
 
-### Server**
+### Server
 
 ```
 npm install dio-upload --save
