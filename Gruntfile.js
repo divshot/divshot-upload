@@ -3,6 +3,15 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     
+    // shell: {
+    //   browserTests: {
+    //     options: {
+    //       // stdout: true
+    //     },
+    //     command: 'node_modules/.bin/testling'
+    //   }
+    // }
+    
     // browserify: {
     //   standalone: {
     //     files: {
@@ -45,6 +54,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-shell');
 
   // grunt.registerTask('build', ['browserify', 'uglify']);
 };
