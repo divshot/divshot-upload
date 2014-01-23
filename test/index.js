@@ -1,4 +1,4 @@
-var uploader = require('../');
+var upload = require('../');
 
 var fs = require('fs');
 var homeDir = require('home-dir');
@@ -18,12 +18,12 @@ var uploadOptions = {
   host: 'http://api.dev.divshot.com:9393'
 };
 
-fileStream.pipe(uploader(uploadOptions))
+fileStream.pipe(upload(uploadOptions))
   .on('message', function (msg) {
     feedback.info(msg);
   })
   .on('released', function (msg) {
-    feedback.success('Released ' + msg[Object.keys(msg)[0]]);
+    feedback.success('Released ' + msg);
   })
   .on('releasing', function () {
     feedback.info('Releasing build...');

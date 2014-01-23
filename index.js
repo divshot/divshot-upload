@@ -1,14 +1,18 @@
 var request = require('hyperquest');
-var Divshot = require('divshot');
 var through = require('through');
-var split = require('split');
-var JSUN = require('jsun');
+var JSONStream = require('jsonstream');
 
-var uploader = function (options) {
+var uploadComplete = require('./lib/upload_complete');
+var finalizeBuild = require('./lib/finalize_build');
+var fileTracker = require('./lib/file_tracker');
+var api = require('./lib/api');
+
+var upload = function (options) {
   var stream = through().pause();
   var config = options.config;
   var environment = options.environment || 'production';
-  var app = buildAppWrapper(options);
+  var app = api(options);
+  var files = {}
 
   //
   app.builds.create({config: config}, function (err, build) {
@@ -20,57 +24,20 @@ var uploader = function (options) {
     stream.emit('message', 'Uploading build');
     
     stream
-      .pipe(request(build.loadpoint.tar_url, xhrOptions)) // Send file to server
-      .pipe(split(parseServerStream)) // split the server response by new line
-      .on('data', function (res) {
-        stream.emit(res.event, res.data);
-      })
-      .on('end', finalizeBuild(stream, app, build, environment));
+      // send file to server
+      .pipe(request(build.loadpoint.tar_url, xhrOptions))
+      
+      // split the server response by new line
+      .pipe(JSONStream.parse()) 
+      
+      // track which files get released and which fail
+      .on('data', fileTracker(stream, files))
+      
+      // end
+      .on('end', uploadComplete(stream, files, finalizeBuild(stream, app, build, environment)));
   });
   
   return stream;
-};
-
-// .on('data', this._deploymentData(this._files))
-// .on('end', this._deploymentEnd(this._files, done));;
-
-function finalizeBuild (stream, app, build, environment) {
-  return function () {
-    app.builds.id(build.id).finalize(function (err, response) {
-      if (err) return stream.emit('error', err);
-      if (response.statusCode < 200 && response.statusCode >= 300) return stream.emit('error', response.body);
-      
-      stream.emit('message', 'Build finalized');
-      stream.emit('releasing');
-      
-      app.builds.id(build.id).release(environment, function (err, response) {
-        if (err) return stream.emit('error', err);
-        stream.emit('message', 'Build released');
-        stream.emit('pushed');
-      });
-    });
-  }
-}
-
-function emitError (stream) {
-  return function (err) {
-    stream.emit('error', err);
-  }
-}
-
-function buildAppWrapper (options) {
-  var apiOptions = {token: options.token};
-  if (options.host) apiOptions.host = options.host;
-  var api = new Divshot(apiOptions);
-  return api.apps.id(options.config.name);
-}
-
-function parseServerStream (data) {
-  if (!data) return;
-  var parsed = JSUN.parse(data.toString());
-  if (parsed.err) throw new Error(parsed.err);
-  
-  return parsed.json;
 };
 
 function defaultXhrOptions (build) {
@@ -83,4 +50,4 @@ function defaultXhrOptions (build) {
   };
 }
 
-module.exports = uploader;
+module.exports = upload;
