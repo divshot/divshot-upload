@@ -14,14 +14,15 @@ var upload = function (options) {
   var app = api(options);
   var files = {}
 
-  //
+  stream.emit('message', 'Creating build ... ');
+  
   app.builds.create({config: config}, function (err, build) {
-    if (err) return stream.emit('error', err);
+    if (err) return stream.emit('error', 'Failed to initiate deploy: ' + err);
     
     var xhrOptions = defaultXhrOptions(build);
     
     stream.emit('message', 'Build created');
-    stream.emit('message', 'Uploading build');
+    stream.emit('message', 'Deploying build ... ');
     
     stream
       // send file to server
