@@ -6,7 +6,9 @@
   "scripts": {
     "test": "npm run test-server && npm run test-browser",
     "test-server": "node_modules/.bin/mocha --reporter spec test/server/**/*.js",
-    "test-browser": "node_modules/.bin/testling | node_modules/.bin/tspec"
+    "test-browser": "node_modules/.bin/testling | node_modules/.bin/tspec",
+    "bundle": "node_modules/.bin/browserify test/browser/app.js -s upload > test/browser/bundle.js",
+    "watch": "node_modules/.bin/watchify test/browser/app.js -s upload -o test/browser/bundle.js -v"
   },
   "repository": {
     "type": "git",
@@ -24,7 +26,7 @@
     "grunt": "~0.4.2",
     "grunt-contrib-uglify": "~0.2.7",
     "grunt-contrib-concat": "~0.3.0",
-    "browserify": "~3.18.0",
+    "browserify": "~3.24.1",
     "grunt-browserify": "~1.3.0",
     "grunt-contrib-watch": "~0.5.3",
     "faucet": "0.0.0",
@@ -34,7 +36,8 @@
     "tap-spec": "0.0.1",
     "tarzan": "~0.1.2",
     "jsun": "~0.1.0",
-    "feedback": "~0.3.2"
+    "feedback": "~0.3.2",
+    "watchify": "~0.5.4"
   },
   "testling": {
     "files": [
@@ -59,6 +62,10 @@
     "mix-into": "~0.1.3",
     "through": "~2.3.4",
     "JSONStream": "~0.7.1",
-    "chalk": "~0.4.0"
+    "chalk": "~0.4.0",
+    "tiny-element": "~0.1.3",
+    "readable-stream": "~1.1.10",
+    "through2": "~0.4.1",
+    "as-stream": "~0.1.1"
   }
 }

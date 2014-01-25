@@ -11,6 +11,7 @@ var fileStream = tarzan({ directory: __dirname + '/test_app'});
 var uploadOptions = {
   token: userConfig.token,
   environment: 'production',
+  type: 'tar',
   config: {
     name: 'uploadapp',
     root: './'

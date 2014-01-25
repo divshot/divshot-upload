@@ -7,13 +7,18 @@ var finalizeBuild = require('./lib/finalize_build');
 var fileTracker = require('./lib/file_tracker');
 var api = require('./lib/api');
 
+var fileTypes = {
+  tar: 'tar_url',
+  zip: 'zip_url'
+};
+
 var upload = function (options) {
   var stream = through().pause();
+  var fileType = options.type || 'tar';
   var config = options.config;
   var environment = options.environment || 'production';
   var app = api(options);
   var files = {}
-
   stream.emit('message', 'Creating build ... ');
   
   app.builds.create({config: config}, function (err, build) {
@@ -25,16 +30,16 @@ var upload = function (options) {
     stream.emit('message', 'Deploying build ... ');
     
     stream
+    
       // send file to server
-      .pipe(request(build.loadpoint.tar_url, xhrOptions))
-      
+      .pipe(request(build.loadpoint[fileTypes[fileType]], xhrOptions))
       // split the server response by new line
-      .pipe(JSONStream.parse()) 
+      .pipe(JSONStream.parse())
       
       // track which files get released and which fail
       .on('data', fileTracker(stream, files))
       
-      // end
+      // // // end
       .on('end', uploadComplete(stream, files, finalizeBuild(stream, app, build, environment)));
   });
   
@@ -46,7 +51,8 @@ function defaultXhrOptions (build) {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/octet-stream',
-      Authorization: build.loadpoint.authorization
+      Authorization: build.loadpoint.authorization,
+      'Access-Control-Allow-Credentials': true
     }
   };
 }
