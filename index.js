@@ -6,7 +6,6 @@ var uploadComplete = require('./lib/upload_complete');
 var finalizeBuild = require('./lib/finalize_build');
 var fileTracker = require('./lib/file_tracker');
 var api = require('./lib/api');
-
 var fileTypes = {
   tar: 'tar_url',
   zip: 'zip_url'
@@ -19,20 +18,20 @@ var upload = function (options) {
   var environment = options.environment || 'production';
   var app = api(options);
   var files = {}
+  
   stream.emit('message', 'Creating build ... ');
   
   app.builds.create({config: config}, function (err, build) {
     if (err) return stream.emit('error', 'Failed to initiate deploy: ' + err);
     
-    var xhrOptions = defaultXhrOptions(build);
-    
     stream.emit('message', 'Build created');
     stream.emit('message', 'Deploying build ... ');
     
     stream
-    
+      
+      // TODO: handle errors
       // send file to server
-      .pipe(request(build.loadpoint[fileTypes[fileType]], xhrOptions))
+      .pipe(request(build.loadpoint[fileTypes[fileType]], defaultXhrOptions(build)))
       // split the server response by new line
       .pipe(JSONStream.parse())
       
