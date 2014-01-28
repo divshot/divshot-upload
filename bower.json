@@ -1,0 +1,23 @@
+{
+  "name": "divshot-upload",
+  "main": "dist/upload.directive.js",
+  "version": "0.1.0",
+  "homepage": "https://github.com/divshot/divshot-upload",
+  "authors": [
+    "Scott Corgan <scott@divshot.com>"
+  ],
+  "description": "Upload app files to Divshot",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "package.json",
+    "Gruntfile.js",
+    ".travis.yml",
+    ".gitignore",
+    "lib"
+  ]
+}
