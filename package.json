@@ -7,7 +7,7 @@
     "test": "npm run test-server && npm run test-browser",
     "test-server": "node_modules/.bin/mocha --reporter spec test/server/**/*.js",
     "test-browser": "node_modules/.bin/testling | node_modules/.bin/tspec",
-    "bundle": "node_modules/.bin/browserify test/browser/app.js -s upload > test/browser/bundle.js",
+    "bundle": "node_modules/.bin/browserify test/browser/app.js -s upload -d > test/browser/bundle.js",
     "watch": "node_modules/.bin/watchify test/browser/app.js -s upload -o test/browser/bundle.js -v"
   },
   "repository": {
