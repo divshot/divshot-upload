@@ -6,7 +6,7 @@ Upload app files to Divshot
 * [Usage](#usage)
   * [Server](#server-or-browserify)
   * [Angular](#angular)
-* [Methods](#api)
+* [API](#api)
 * [Run Tests](#run-tests)
 
 ## Install
@@ -147,9 +147,9 @@ The upload stream emits the following events
 
 * `message` - generic message from upload stream
   * callback should look like `function (message) {}`
-*`releasing` - started the releasing stage of the push
+* `releasing` - started the releasing stage of the push
   * callbacked should look like `function () {}`
-*`released` - individual file has been released
+* `released` - individual file has been released
   * callbacked should look like `function (file) {}`
 * `pushed` - build has been fully pushed and deployed
   * callbacked should look like `function () {}`
