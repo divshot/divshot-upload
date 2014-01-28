@@ -46,7 +46,11 @@ fileStream
 
 ### Angular
 
-#### Inject into app**
+```html
+<script src="/bower_components/divshot-upload/dist/upload.directive.js"></script>
+```
+
+#### Inject into app
 
 ```js
 angular.modules('myApp', ['divshot.upload']);
