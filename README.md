@@ -2,6 +2,13 @@
 
 Upload app files to Divshot
 
+* [Install](#install)
+* [Usage](#usage)
+  * [Server](#server-or-browserify)
+  * [Angular](#angular)
+* [Methods](#methods)
+* [Run Tests](#run-tests)
+
 ## Install
 
 ### Server and Browserify
@@ -122,6 +129,34 @@ angular.modules('myApp')
     };
   });
 ```
+
+## API
+
+### upload(options)
+
+* **options**
+  * `token` - user authentication token
+  * `environment` - environment to push to
+  * `type` - type of file to upload (**tar** or **zip** only for now)
+  * `config` - application configuration (taken from the *divshot.json* file)
+  * `host` - OPTIONAL - the divshot api endpoint (Used for dev, test, and production environments). Defaults to production api.
+  
+### Events
+
+The upload stream emits the following events
+
+* `message` - generic message from upload stream
+  * callback should look like `function (message) {}`
+  `releasing` - started the releasing stage of the push
+  * callbacked should look like `function () {}`
+  `released` - individual file has been released
+  * callbacked should look like `function (file) {}`
+  `pushed` - build has been fully pushed and deployed
+  * callbacked should look like `function () {}`
+  `unreleased` - only fired if there were unreleased files
+  * calback should look like `function (unreleasedFiles) {}`
+  `error` - an error occured in the process
+  * callbacked should look like `function (err) {}`
 
 ## Run Tests
 
