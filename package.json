@@ -9,7 +9,8 @@
     "test-browser": "node_modules/.bin/testling | node_modules/.bin/tspec",
     "bundle": "node_modules/.bin/browserify test/browser/app.js -s upload > test/browser/bundle.js",
     "bundle-debug": "node_modules/.bin/browserify test/browser/app.js -s upload -d > test/browser/bundle.js",
-    "watch": "node_modules/.bin/watchify test/browser/app.js -s upload -o test/browser/bundle.js -v"
+    "bundle-directive": "node_modules/.bin/browserify lib/browser/angular-directive.js > dist/upload.directive.js",
+    "bundle-directive-test": "node_modules/.bin/browserify lib/browser/angular-directive.js -d > test/browser/upload.directive.js"
   },
   "repository": {
     "type": "git",
@@ -38,7 +39,8 @@
     "tarzan": "~0.1.2",
     "jsun": "~0.1.0",
     "feedback": "~0.3.2",
-    "watchify": "~0.5.4"
+    "watchify": "~0.5.4",
+    "drag-and-drop-files": "0.0.1"
   },
   "testling": {
     "files": [

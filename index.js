@@ -6,6 +6,7 @@ var uploadComplete = require('./lib/upload_complete');
 var finalizeBuild = require('./lib/finalize_build');
 var fileTracker = require('./lib/file_tracker');
 var api = require('./lib/api');
+
 var fileTypes = {
   tar: 'tar_url',
   zip: 'zip_url'
@@ -29,17 +30,17 @@ var upload = function (options) {
     
     stream
       
-      // TODO: handle errors
       // send file to server
       .pipe(request(build.loadpoint[fileTypes[fileType]], defaultXhrOptions(build)))
+      
       // split the server response by new line
       .pipe(JSONStream.parse())
       
       // track which files get released and which fail
       .on('data', fileTracker(stream, files))
       
-      // // // end
-      .on('end', uploadComplete(stream, files, finalizeBuild(stream, app, build, environment)));
+      // // end
+      .on('end', uploadComplete(stream, files, finalizeBuild(stream, app, build, environment)))
   });
   
   return stream;
@@ -50,8 +51,8 @@ function defaultXhrOptions (build) {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/octet-stream',
-      Authorization: build.loadpoint.authorization,
-      'Access-Control-Allow-Credentials': true
+      Authorization: build.loadpoint.authorization
+      // 'Access-Control-Allow-Credentials': true
     }
   };
 }

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Directive Test</title>
+  
+  <style>
+    .divshot-upload{
+      background:#ccc;
+      display:block;
+      padding:40px;
+    }
+    .divshot-upload.enter{
+      background:#888;
+    }
+  </style>
+  
+</head>
+<body ng-controller="AppController">
+
+  <ds-upload class="divshot-upload"
+    ds-config="appConfig"
+    ds-environment="environment"
+    ds-token="token"
+    ds-enter="onEnter()"
+    ds-leave="onLeave()"
+    ds-drop="onDrop()"
+    ds-progress="onProgress(type, message)"
+    ds-done="onDone()"
+    ds-unreleased = "onUnreleased(files)"
+    ds-error="onError(message)"
+    ds-host="host">
+    
+    Drop Here or Click Here to Upload File
+    
+  </ds-upload>
+  
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular.min.js"></script>
+  <script src="/upload.directive.js"></script>
+  
+  <script>
+  var app = angular.module('myApp', ['divshot.upload']);
+  
+  app.controller('AppController', function ($scope) {
+    $scope.divshot = 'Upload';
+    $scope.environment = 'production';
+    $scope.token = 'ynnwS3hTA51wDQhOtr-Q3xDysa0K8Q47X_7DHX6u';
+    $scope.host = 'http://api.dev.divshot.com:9393';
+    $scope.appConfig = {
+      name: 'uploadapp',
+      clean_urls: true
+    };
+    
+    $scope.onEnter = function () {
+      console.log('enter');
+    };
+    $scope.onLeave = function () {
+      console.log('leave');
+    };
+    $scope.onDrop = function () {
+      console.log('drop');
+    };
+    $scope.onProgress = function (type, message) {
+      console.log(type + ':', message);
+    };
+    $scope.onDone = function () {
+      console.log('Application deployed!');
+    };
+    $scope.onUnreleased = function (files) {
+      console.error('Not all files released.');
+      
+      Object.keys(files).forEach(function (filename) {
+        console.error(filename + ' unreleased');
+      });
+    };
+    $scope.onError = function (message) {
+      console.error('ERROR:', message);
+    };
+  });
+  </script>
+</body>
+</html>
