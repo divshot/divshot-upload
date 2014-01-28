@@ -67,6 +67,8 @@ angular.modules('myApp', ['divshot.upload']);
 
 HTML
 
+The `<ds-upload/>` element becomes a drag and drop zone OR you can click on it to upload a file
+
 ```html
 <div ng-controller="AppController">
   <ds-upload class="divshot-upload"
