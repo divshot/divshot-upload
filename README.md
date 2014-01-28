@@ -1,4 +1,4 @@
-# dio-upload
+# divshot-upload
 
 Upload app files to Divshot
 
@@ -46,33 +46,35 @@ fileStream
 
 ### Angular
 
-**Inject into app**
+#### Inject into app**
 
 ```js
 angular.modules('myApp', ['divshot.upload']);
 ```
 
-**Use as directive**
+#### Use as directive
 
 HTML
 
 ```html
-<ds-upload class="divshot-upload"
-  ds-config="appConfig"
-  ds-environment="environment"
-  ds-token="token"
-  ds-enter="onEnter()"
-  ds-leave="onLeave()"
-  ds-drop="onDrop()"
-  ds-progress="onProgress(type, message)"
-  ds-done="onDone()"
-  ds-unreleased = "onUnreleased(files)"
-  ds-error="onError(message)"
-  ds-host="host">
-  
-  Drop Here or Click Here to Upload File
-  
-</ds-upload>
+<div ng-controller="AppController">
+  <ds-upload class="divshot-upload"
+    ds-config="appConfig"
+    ds-environment="environment"
+    ds-token="token"
+    ds-enter="onEnter()"
+    ds-leave="onLeave()"
+    ds-drop="onDrop()"
+    ds-progress="onProgress(type, message)"
+    ds-done="onDone()"
+    ds-unreleased="onUnreleased(files)"
+    ds-error="onError(message)"
+    ds-host="host">
+    
+    Drop Here or Click Here to Upload File
+    
+  </ds-upload>
+</div>
 ```
 
 Controller
