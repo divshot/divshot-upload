@@ -25,6 +25,7 @@ var upload = function (options) {
   
   app.builds.create({config: config}, function (err, build) {
     if (err) return stream.emit('error', 'Failed to initiate deploy: ' + err);
+    if (!build || !build.loadpoint) return stream.emit('error', 'Failed to create deploy build');
     
     stream.emit('message', 'Build created');
     stream.emit('message', 'Deploying build ... ');
@@ -53,7 +54,6 @@ function defaultXhrOptions (build) {
     headers: {
       'Content-Type': 'application/octet-stream',
       Authorization: build.loadpoint.authorization
-      // 'Access-Control-Allow-Credentials': true
     }
   };
 }
@@ -72,7 +72,6 @@ module.exports = function (options) {
 var upload = require('../../index.js');
 var createReadStream = require('filereader-stream');
 var drop = require('drag-and-drop-files');
-var through = require('through');
 
 angular.module('divshot.upload', [])
   .directive('dsUpload', function () {
@@ -216,7 +215,7 @@ angular.module('divshot.upload', [])
       }
     };
   })
-},{"../../index.js":1,"drag-and-drop-files":53,"filereader-stream":54,"through":61}],4:[function(require,module,exports){
+},{"../../index.js":1,"drag-and-drop-files":53,"filereader-stream":54}],4:[function(require,module,exports){
 module.exports = function (stream, files) {
   return function (data) {
     
@@ -239,6 +238,7 @@ module.exports = function (stream, files) {
         break;
       case 'done':
         stream.emit('done');
+        stream.done = true;
         break;
     };
   };
@@ -248,6 +248,11 @@ module.exports = function (stream, app, build, environment) {
   var buildApi = app.builds.id(build.id);
   
   return function () {
+    if (!stream.done) {
+      stream.emit('error', 'Build upload never recieved "done" event. Assuming upload has failed.');
+      return;
+    }
+    
     stream.emit('message', 'Finalizing build ... ');
     
     buildApi.finalize(function (err, response) {
