@@ -24,6 +24,7 @@ var upload = function (options) {
   
   app.builds.create({config: config}, function (err, build) {
     if (err) return stream.emit('error', 'Failed to initiate deploy: ' + err);
+    if (!build || !build.loadpoint) return stream.emit('error', 'Failed to create deploy build');
     
     stream.emit('message', 'Build created');
     stream.emit('message', 'Deploying build ... ');
@@ -52,7 +53,6 @@ function defaultXhrOptions (build) {
     headers: {
       'Content-Type': 'application/octet-stream',
       Authorization: build.loadpoint.authorization
-      // 'Access-Control-Allow-Credentials': true
     }
   };
 }
