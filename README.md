@@ -95,7 +95,6 @@ Controller
 ```js
 angular.modules('myApp')
   .controller('AppController', function ($scope) {
-    $scope.divshot = 'Upload';
     $scope.environment = 'production';
     $scope.token = 'some-user-token';
     $scope.host = 'http://dev.host'; // OPTIONAL
