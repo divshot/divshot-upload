@@ -1,6 +1,6 @@
 var request = require('hyperquest');
 var through = require('through');
-var JSONStream = require('jsonstream');
+var JSONStream = require('JSONstream');
 
 var uploadComplete = require('./lib/upload_complete');
 var finalizeBuild = require('./lib/finalize_build');
