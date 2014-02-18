@@ -1,12 +1,13 @@
 {
   "name": "divshot-upload",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Upload app files to Divshot",
   "main": "index.js",
   "scripts": {
     "test": "npm run test-server && npm run test-browser",
     "test-server": "node_modules/.bin/mocha --reporter spec test/server/**/*.js",
     "test-browser": "node_modules/.bin/testling | node_modules/.bin/tspec",
+    "build": "npm run bundle-directive",
     "bundle": "node_modules/.bin/browserify test/browser/app.js -s upload > test/browser/bundle.js",
     "bundle-debug": "node_modules/.bin/browserify test/browser/app.js -s upload -d > test/browser/bundle.js",
     "bundle-directive": "node_modules/.bin/browserify lib/browser/angular-directive.js > dist/upload.directive.js",
