@@ -80,6 +80,7 @@ The `<ds-upload/>` element becomes a drag and drop zone OR you can click on it t
     ds-drop="onDrop()"
     ds-progress="onProgress(type, message)"
     ds-done="onDone()"
+    ds-start="onStart()"
     ds-unreleased="onUnreleased(files)"
     ds-error="onError(message)"
     ds-host="host">
@@ -117,6 +118,9 @@ angular.modules('myApp')
     };
     $scope.onDone = function () {
       console.log('Application deployed!');
+    };
+    $scope.onStart = function () {
+      console.log('Upload started');
     };
     $scope.onUnreleased = function (files) {
       console.error('Not all files released.');
