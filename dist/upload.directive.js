@@ -90,7 +90,7 @@ angular.module('divshot.upload', [])
         dsDrop: '&',
         dsProgress: '&',
         dsDone: '&',
-        dsStart: '&',
+        dsBegin: '&',
         dsError: '&'
       },
       
@@ -139,6 +139,11 @@ angular.module('divshot.upload', [])
           $scope.dsUnreleased({files: files});
           $scope.$apply();
         };
+        
+        $scope.sendBegin = function (file) {
+          $scope.dsBegin({file: file});
+          $scope.$apply();
+        };
       },
       
       link: function (scope, element, attrs) {
@@ -158,7 +163,7 @@ angular.module('divshot.upload', [])
         //
         // FIXME: for now, we only support a single file, tar or zip
         function startUpload (file) {
-          scope.dsStart({file: file});
+          scope.sendBegin(file);
           
           createReadStream(file).pipe(upload(scope.uploadOptions))
             .on('message', scope.sendProgress('message'))
