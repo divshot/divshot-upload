@@ -1,7 +1,7 @@
 {
   "name": "divshot-upload",
   "main": "dist/upload.directive.js",
-  "version": "0.1.9",
+  "version": "0.1.11",
   "homepage": "https://github.com/divshot/divshot-upload",
   "authors": [
     "Scott Corgan <scott@divshot.com>"
