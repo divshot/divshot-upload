@@ -25,6 +25,7 @@ var upload = function (options) {
   
   app.builds.create({config: config}, function (err, build) {
     if (err) return stream.emit('error', 'Failed to initiate deploy: ' + err);
+    if (build && build.status == 401) return stream.emit('error', build);
     if (!build || !build.loadpoint) return stream.emit('error', 'Failed to create deploy build');
     
     stream.emit('message', 'Build created');
