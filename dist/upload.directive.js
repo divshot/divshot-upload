@@ -60,7 +60,7 @@ function defaultXhrOptions (build) {
 
 module.exports = upload;
 },{"./lib/api":2,"./lib/file_tracker":4,"./lib/finalize_build":5,"./lib/upload_complete":6,"JSONStream":7,"hyperquest":58,"through":61}],2:[function(require,module,exports){
-var Divshot = require('divshot');
+var Divshot = require('divshot-api');
 
 module.exports = function (options) {
   var apiOptions = {token: options.token};
@@ -68,7 +68,7 @@ module.exports = function (options) {
   var api = new Divshot(apiOptions);
   return api.apps.id(options.config.name);
 };
-},{"divshot":37}],3:[function(require,module,exports){
+},{"divshot-api":37}],3:[function(require,module,exports){
 var upload = require('../../index.js');
 var createReadStream = require('filereader-stream');
 var drop = require('drag-and-drop-files');
@@ -261,7 +261,7 @@ module.exports = function (stream, app, build, environment) {
   
   return function () {
     if (!stream.done) {
-      stream.emit('error', 'Build upload never recieved "done" event. Assuming upload has failed.');
+      stream.emit('error', 'Build upload never received "done" event. Assuming upload has failed.');
       return;
     }
     
@@ -8212,6 +8212,8 @@ var builds = require('./builds');
 var releases = require('./releases');
 var organizations = require('./organizations');
 
+var DIVSHOT_API_VERSION = '0.5.0';
+
 var Divshot = function (options) {
   this.defaults = {};
   this.options = defaults(options, this.defaults);
@@ -8221,10 +8223,13 @@ var Divshot = function (options) {
     headers: {}
   };
   
+  if (process.env.DIVSHOT_API_VERSION || options.version || DIVSHOT_API_VERSION) {
+    var version = process.env.DIVSHOT_API_VERSION || options.version || DIVSHOT_API_VERSION;
+    apiOptions.headers['Accept-Version'] = version
+  }
+
   if (options.token) {
-    apiOptions.headers = {
-      authorization: 'Bearer ' + options.token
-    };
+    apiOptions.headers['authorization'] = 'Bearer ' + options.token
   }
   
   this._api = new Narrator(apiOptions);
@@ -8300,6 +8305,16 @@ module.exports = function (api, divshot) {
               });
             },
             
+            rollbackTo: function (version, callback) {
+              return this.http.request(this.url() + '/rollback', 'POST', {
+                form: {
+                  version: version
+                }
+              }, function (err, response, body) {
+                if (callback) callback(err, response);
+              });
+            },
+            
             promote: function (environment, callback) {
               return this.http.request(this.url(), 'POST', {
                 form: {
@@ -8327,11 +8342,11 @@ module.exports = function (api, divshot) {
         },
         
         add: function (domain, callback) {
-          this._domainRequest(domain, 'PUT', callback);
+          return this._domainRequest(domain, 'PUT', callback);
         },
         
         remove: function (domain, callback) {
-          this._domainRequest(domain, 'DELETE', callback);
+          return this._domainRequest(domain, 'DELETE', callback);
         }
       });
       
@@ -8518,7 +8533,7 @@ module.exports = function (api, divshot, credentials) {
           grant_type: 'password'
         },
         headers: {
-          Authorization: 'Basic NTI1NTc4YTM0MjFhYTk4MTU1MDAwMDA0Og==' // TODO: move this elsewhere
+          Authorization: 'Basic ' + btoa(this.options.client_id + ":")
         }
       }, function (err, response, body) {
         if (callback && err || body.status) {
@@ -8884,6 +8899,11 @@ var Narrator = module.exports = function (options) {
   this.host = '/';
   
   extend(this, options);
+  
+  // FIXME: This is a hacky to expose some features
+  var http = this.endpoint('').http;
+  this._request = http._http;
+  this.createPromise = http._promiseWrap;
 };
 
 Narrator.Http = require('./http');
