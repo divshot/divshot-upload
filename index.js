@@ -1,6 +1,7 @@
 var request = require('hyperquest');
 var through = require('through');
-var JSONStream = require('JSONStream');
+var jsonstream = require('JSONStream');
+var parse = require('jsonparse');
 
 var uploadComplete = require('./lib/upload_complete');
 var finalizeBuild = require('./lib/finalize_build');
@@ -36,7 +37,7 @@ var upload = function (options) {
       .pipe(request(build.loadpoint[fileTypes[fileType]], defaultXhrOptions(build)))
       
       // split the server response by new line
-      .pipe(JSONStream.parse())
+      .pipe(jsonstream.parse())
       
       // track which files get released and which fail
       .on('data', fileTracker(stream, files))

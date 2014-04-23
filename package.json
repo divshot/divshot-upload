@@ -1,6 +1,6 @@
 {
   "name": "divshot-upload",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Upload app files to Divshot",
   "main": "index.js",
   "scripts": {
@@ -70,6 +70,7 @@
     "readable-stream": "~1.1.10",
     "through2": "~0.4.1",
     "as-stream": "~0.1.1",
-    "filereader-stream": "0.0.1"
+    "filereader-stream": "0.0.1",
+    "is-node": "0.0.0"
   }
 }
