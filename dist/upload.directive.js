@@ -72,7 +72,7 @@ module.exports = function (options) {
   // Client side only
   if (!isNode) {
     apiOptions.client_id = options.client_id;
-    apiOptions.sesion = true;
+    apiOptions.session = true;
   }
   
   if (options.host) apiOptions.host = options.host;
