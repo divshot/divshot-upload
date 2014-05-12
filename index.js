@@ -18,7 +18,7 @@ var upload = function (options) {
   var config = options.config;
   var environment = options.environment || 'production';
   var app = api(options);
-  var files = {}
+  var files = {};
   
   stream.emit('message', 'Creating build ... ');
   

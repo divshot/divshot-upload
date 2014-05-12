@@ -1,6 +1,6 @@
 {
   "name": "divshot-upload",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Upload app files to Divshot",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "build": "npm run bundle-directive",
     "bundle": "node_modules/.bin/browserify test/browser/app.js -s upload > test/browser/bundle.js",
     "bundle-debug": "node_modules/.bin/browserify test/browser/app.js -s upload -d > test/browser/bundle.js",
-    "bundle-directive": "node_modules/.bin/browserify lib/browser/angular-directive.js > dist/upload.directive.js",
+    "bundle-directive": "browserify lib/browser/angular-directive.js > dist/upload.directive.js",
     "bundle-directive-test": "node_modules/.bin/browserify lib/browser/angular-directive.js -d > test/browser/upload.directive.js"
   },
   "repository": {
@@ -23,25 +23,10 @@
     "url": "https://github.com/divshot/dio-upload/issues"
   },
   "devDependencies": {
-    "tape": "~2.3.2",
-    "testling": "~1.5.6",
-    "uglifyjs": "~2.3.6",
+    "browserify": "~4.1.2",
     "grunt": "~0.4.2",
-    "grunt-contrib-uglify": "~0.2.7",
-    "grunt-contrib-concat": "~0.3.0",
-    "browserify": "~3.24.1",
-    "grunt-browserify": "~1.3.0",
-    "grunt-contrib-watch": "~0.5.3",
-    "faucet": "0.0.0",
-    "grunt-shell": "~0.6.1",
-    "mocha": "~1.16.2",
-    "expect.js": "~0.2.0",
-    "tap-spec": "0.0.1",
-    "tarzan": "~0.1.2",
-    "jsun": "~0.1.0",
-    "feedback": "~0.3.2",
-    "watchify": "~0.5.4",
-    "drag-and-drop-files": "0.0.1"
+    "uglifyjs": "~2.3.6",
+    "watchify": "~0.5.4"
   },
   "testling": {
     "files": [
@@ -60,17 +45,15 @@
     ]
   },
   "dependencies": {
-    "hyperquest": "~0.2.0",
-    "divshot-api": "0.6.x",
-    "home-dir": "~0.1.2",
-    "mix-into": "~0.1.3",
-    "through": "~2.3.4",
+    "drag-and-drop-files": "0.0.1",
     "JSONStream": "~0.7.1",
-    "chalk": "~0.4.0",
-    "readable-stream": "~1.1.10",
-    "through2": "~0.4.1",
     "as-stream": "~0.1.1",
-    "filereader-stream": "0.0.1",
-    "is-node": "0.0.0"
+    "divshot-api": "0.6.x",
+    "filereader-stream": "~0.1.1",
+    "home-dir": "~0.1.2",
+    "hyperquest": "~0.3.0",
+    "is-node": "0.0.0",
+    "readable-stream": "~1.1.10",
+    "through": "~2.3.4"
   }
 }
