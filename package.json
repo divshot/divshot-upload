@@ -1,6 +1,6 @@
 {
   "name": "divshot-upload",
-  "version": "0.1.20",
+  "version": "0.2.0",
   "description": "Upload app files to Divshot",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,7 @@
     "bundle": "node_modules/.bin/browserify test/browser/app.js -s upload > test/browser/bundle.js",
     "bundle-debug": "node_modules/.bin/browserify test/browser/app.js -s upload -d > test/browser/bundle.js",
     "bundle-directive": "browserify lib/browser/angular-directive.js > dist/upload.directive.js",
+    "minify-directive": "echo 'hey'",
     "bundle-directive-test": "node_modules/.bin/browserify lib/browser/angular-directive.js -d > test/browser/upload.directive.js"
   },
   "repository": {
@@ -45,15 +46,15 @@
     ]
   },
   "dependencies": {
-    "drag-and-drop-files": "0.0.1",
     "JSONStream": "~0.7.1",
     "as-stream": "~0.1.1",
     "divshot-api": "0.6.x",
-    "filereader-stream": "~0.1.1",
+    "drag-and-drop-files": "0.0.1",
     "home-dir": "~0.1.2",
     "hyperquest": "~0.3.0",
     "is-node": "0.0.0",
     "readable-stream": "~1.1.10",
+    "streamifier": "~0.1.0",
     "through": "~2.3.4"
   }
 }

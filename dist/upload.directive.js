@@ -2,6 +2,7 @@
 var request = require('hyperquest');
 var through = require('through');
 var jsonstream = require('JSONStream');
+var through = require('through');
 
 var uploadComplete = require('./lib/upload_complete');
 var finalizeBuild = require('./lib/finalize_build');
@@ -31,10 +32,12 @@ var upload = function (options) {
     stream.emit('message', 'Build created');
     stream.emit('message', 'Deploying build ... ');
     
+    var req = request(build.loadpoint[fileTypes[fileType]], defaultXhrOptions(build));
+    
     stream
       
       // send file to server
-      .pipe(request(build.loadpoint[fileTypes[fileType]], defaultXhrOptions(build)))
+      .pipe(req)
       
       // split the server response by new line
       .pipe(jsonstream.parse())
@@ -60,7 +63,7 @@ function defaultXhrOptions (build) {
 }
 
 module.exports = upload;
-},{"./lib/api":2,"./lib/file_tracker":4,"./lib/finalize_build":5,"./lib/upload_complete":6,"JSONStream":7,"hyperquest":53,"through":71}],2:[function(require,module,exports){
+},{"./lib/api":2,"./lib/file_tracker":4,"./lib/finalize_build":5,"./lib/upload_complete":6,"JSONStream":7,"hyperquest":51,"through":70}],2:[function(require,module,exports){
 var Divshot = require('divshot-api');
 var isNode = require('is-node');
 
@@ -76,13 +79,15 @@ module.exports = function (options) {
   }
   
   if (options.host) apiOptions.host = options.host;
+  
   var api = new Divshot(apiOptions);
   return api.apps.id(options.config.name);
 };
-},{"divshot-api":29,"is-node":56}],3:[function(require,module,exports){
+},{"divshot-api":29,"is-node":54}],3:[function(require,module,exports){
 var upload = require('../../index.js');
-var createReadStream = require('filereader-stream');
 var drop = require('drag-and-drop-files');
+var streamifier = require('streamifier');
+var through = require('through');
 
 angular.module('divshot.upload', [])
   .directive('dsUpload', function () {
@@ -177,7 +182,7 @@ angular.module('divshot.upload', [])
         function startUpload (file) {
           scope.sendBegin(file);
           
-          createReadStream(file).pipe(upload(scope.uploadOptions))
+          createFileStream(file).pipe(upload(scope.uploadOptions))
             .on('message', scope.sendProgress('message'))
             .on('released', scope.sendProgress('released'))
             .on('releasing', scope.sendProgress('releasing'))
@@ -236,10 +241,28 @@ angular.module('divshot.upload', [])
             width: '100%'
           });
         }
+        
+        function createFileStream (file) {
+          var stream = through();
+          var reader = new FileReader();
+          
+          reader.addEventListener('load', function (e) {
+            var arr = new Uint8Array(e.target.result);
+            streamifier.createReadStream(arr).pipe(stream)
+          });
+          
+          reader.addEventListener('error', function (err) {
+            stream.emit('error', err);
+          });
+          
+          reader.readAsArrayBuffer(file);
+          
+          return stream;
+        }
       }
     };
-  })
-},{"../../index.js":1,"drag-and-drop-files":50,"filereader-stream":51}],4:[function(require,module,exports){
+  });
+},{"../../index.js":1,"drag-and-drop-files":50,"streamifier":69,"through":70}],4:[function(require,module,exports){
 module.exports = function (stream, files) {
   return function (data) {
     
@@ -281,7 +304,16 @@ module.exports = function (stream, app, build, environment) {
     
     buildApi.finalize(function (err, response) {
       if (err) return stream.emit('error', err);
-      if (response.statusCode < 200 || response.statusCode >= 300) return stream.emit('error', JSON.parse(response.body).error);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        var res = {};
+        
+        try {res = JSON.parse(response.body);}
+        catch (e) {}
+        
+        stream.emit('error', res.error);
+        
+        return stream;
+      }
       
       stream.emit('message', 'Build finalized');
       stream.emit('message', 'Releasing build to ' + environment + ' ... ');
@@ -502,7 +534,7 @@ exports.stringifyObject = function (op, sep, cl) {
 }
 
 }).call(this,require("FWaASH"),require("buffer").Buffer)
-},{"FWaASH":20,"buffer":10,"jsonparse":8,"stream":25,"through":71}],8:[function(require,module,exports){
+},{"FWaASH":20,"buffer":10,"jsonparse":8,"stream":25,"through":70}],8:[function(require,module,exports){
 (function (Buffer){
 /*global Buffer*/
 // Named constants with unique integer values
@@ -4011,7 +4043,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":13,"inherits":19,"readable-stream/duplex.js":57,"readable-stream/passthrough.js":67,"readable-stream/readable.js":68,"readable-stream/transform.js":69,"readable-stream/writable.js":70}],26:[function(require,module,exports){
+},{"events":13,"inherits":19,"readable-stream/duplex.js":55,"readable-stream/passthrough.js":65,"readable-stream/readable.js":66,"readable-stream/transform.js":67,"readable-stream/writable.js":68}],26:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7102,135 +7134,6 @@ function addDragDropListener(element, callback) {
 
 module.exports = addDragDropListener
 },{}],51:[function(require,module,exports){
-(function (Buffer){
-var inherits = require('inherits')
-var EventEmitter = require('events').EventEmitter
-
-module.exports = FileStream
-
-function FileStream(file, options) { 
-  if (!(this instanceof FileStream))
-    return new FileStream(file, options)
-  options = options || {}
-  options.output = options.output || 'arraybuffer'
-  this.options = options
-  this._file = file
-  this.readable = true
-  this.offset = options.offset || 0
-  this.paused = false
-  this.chunkSize = this.options.chunkSize || 8128  
-
-  var tags = ['name','size','type','lastModifiedDate']
-  tags.forEach(function (thing) {
-     this[thing] = file[thing]
-   }, this)      
-}
-
-  
-FileStream.prototype._FileReader = function() {
-  var self = this
-  var reader = new FileReader()
-  const outputType = this.options.output
-
-  reader.onloadend = function loaded(event) {
-    var data = event.target.result      
-    if (data instanceof ArrayBuffer)
-      data = new Buffer(new Uint8Array(event.target.result))
-    self.dest.write(data)        
-    if (self.offset < self._file.size) {
-      self.emit('progress', self.offset)
-      !self.paused && self.readChunk(outputType)      
-      return
-    }
-    self._end()
-  }
-  reader.onerror = function(e) {
-    self.emit('error', e.target.error)
-  }
-
-  return reader
-}
-
-FileStream.prototype.readChunk = function(outputType) {
-  var end = this.offset + this.chunkSize
-  var slice = this._file.slice(this.offset, end)
-  this.offset = end
-  if (outputType === 'binary')
-    this.reader.readAsBinaryString(slice)
-  else if (outputType === 'dataurl')
-    this.reader.readAsDataURL(slice)
-  else if (outputType === 'arraybuffer')
-    this.reader.readAsArrayBuffer(slice)
-  else if (outputType === 'text')
-    this.reader.readAsText(slice)  
-}
-
-FileStream.prototype._end = function() {
-  if (this.dest !== console && (!this.options || this.options.end !== false)) {
-    this.dest.end && this.dest.end()
-    this.dest.close && this.dest.close()
-    this.emit('end', this._file.size)
-  }  
-}
-
-FileStream.prototype.pipe = function pipe(dest, options) {
-  this.reader = this._FileReader()
-  this.readChunk(this.options.output)
-  this.dest = dest
-  return dest
-}
-
-FileStream.prototype.pause = function() {
-  this.paused = true
-  return this.offset
-}
-
-FileStream.prototype.resume = function() {
-  this.paused = false
-  this.readChunk(this.options.output)
-}
-
-FileStream.prototype.abort = function() {
-  this.paused = true
-  this.reader.abort()
-  this._end()
-  return this.offset
-}
-
-inherits(FileStream, EventEmitter)
-}).call(this,require("buffer").Buffer)
-},{"buffer":10,"events":13,"inherits":52}],52:[function(require,module,exports){
-module.exports = inherits
-
-function inherits (c, p, proto) {
-  proto = proto || {}
-  var e = {}
-  ;[c.prototype, proto].forEach(function (s) {
-    Object.getOwnPropertyNames(s).forEach(function (k) {
-      e[k] = Object.getOwnPropertyDescriptor(s, k)
-    })
-  })
-  c.prototype = Object.create(p.prototype, e)
-  c.super = p
-}
-
-//function Child () {
-//  Child.super.call(this)
-//  console.error([this
-//                ,this.constructor
-//                ,this.constructor === Child
-//                ,this.constructor.super === Parent
-//                ,Object.getPrototypeOf(this) === Child.prototype
-//                ,Object.getPrototypeOf(Object.getPrototypeOf(this))
-//                 === Parent.prototype
-//                ,this instanceof Child
-//                ,this instanceof Parent])
-//}
-//function Parent () {}
-//inherits(Child, Parent)
-//new Child
-
-},{}],53:[function(require,module,exports){
 (function (process,Buffer){
 var url = require('url');
 var http = require('http');
@@ -7386,7 +7289,7 @@ Req.prototype.setLocation = function (uri) {
 };
 
 }).call(this,require("FWaASH"),require("buffer").Buffer)
-},{"FWaASH":20,"buffer":10,"duplexer":54,"http":14,"https":18,"through":55,"url":26}],54:[function(require,module,exports){
+},{"FWaASH":20,"buffer":10,"duplexer":52,"http":14,"https":18,"through":53,"url":26}],52:[function(require,module,exports){
 var Stream = require("stream")
 var writeMethods = ["write", "end", "destroy"]
 var readMethods = ["resume", "pause"]
@@ -7475,7 +7378,7 @@ function duplex(writer, reader) {
     }
 }
 
-},{"stream":25}],55:[function(require,module,exports){
+},{"stream":25}],53:[function(require,module,exports){
 (function (process){
 var Stream = require('stream')
 
@@ -7582,15 +7485,15 @@ function through (write, end) {
 
 
 }).call(this,require("FWaASH"))
-},{"FWaASH":20,"stream":25}],56:[function(require,module,exports){
+},{"FWaASH":20,"stream":25}],54:[function(require,module,exports){
 (function (process){
 module.exports = !!(typeof process != 'undefined' && process.versions && process.versions.node);
 
 }).call(this,require("FWaASH"))
-},{"FWaASH":20}],57:[function(require,module,exports){
+},{"FWaASH":20}],55:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":58}],58:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":56}],56:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7683,7 +7586,7 @@ function forEach (xs, f) {
 }
 
 }).call(this,require("FWaASH"))
-},{"./_stream_readable":60,"./_stream_writable":62,"FWaASH":20,"core-util-is":63,"inherits":64}],59:[function(require,module,exports){
+},{"./_stream_readable":58,"./_stream_writable":60,"FWaASH":20,"core-util-is":61,"inherits":62}],57:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7731,7 +7634,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":61,"core-util-is":63,"inherits":64}],60:[function(require,module,exports){
+},{"./_stream_transform":59,"core-util-is":61,"inherits":62}],58:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -8679,7 +8582,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("FWaASH"))
-},{"FWaASH":20,"buffer":10,"core-util-is":63,"events":13,"inherits":64,"isarray":65,"stream":25,"string_decoder/":66,"util":9}],61:[function(require,module,exports){
+},{"FWaASH":20,"buffer":10,"core-util-is":61,"events":13,"inherits":62,"isarray":63,"stream":25,"string_decoder/":64,"util":9}],59:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -8890,7 +8793,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":58,"core-util-is":63,"inherits":64}],62:[function(require,module,exports){
+},{"./_stream_duplex":56,"core-util-is":61,"inherits":62}],60:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -9366,7 +9269,7 @@ function endWritable(stream, state, cb) {
 }
 
 }).call(this,require("FWaASH"))
-},{"./_stream_duplex":58,"FWaASH":20,"buffer":10,"core-util-is":63,"inherits":64,"stream":25}],63:[function(require,module,exports){
+},{"./_stream_duplex":56,"FWaASH":20,"buffer":10,"core-util-is":61,"inherits":62,"stream":25}],61:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -9476,14 +9379,14 @@ function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":10}],64:[function(require,module,exports){
+},{"buffer":10}],62:[function(require,module,exports){
 module.exports=require(19)
-},{}],65:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],66:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -9685,10 +9588,10 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":10}],67:[function(require,module,exports){
+},{"buffer":10}],65:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":59}],68:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":57}],66:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = require('stream');
 exports.Readable = exports;
@@ -9697,13 +9600,44 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":58,"./lib/_stream_passthrough.js":59,"./lib/_stream_readable.js":60,"./lib/_stream_transform.js":61,"./lib/_stream_writable.js":62,"stream":25}],69:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":56,"./lib/_stream_passthrough.js":57,"./lib/_stream_readable.js":58,"./lib/_stream_transform.js":59,"./lib/_stream_writable.js":60,"stream":25}],67:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":61}],70:[function(require,module,exports){
+},{"./lib/_stream_transform.js":59}],68:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":62}],71:[function(require,module,exports){
+},{"./lib/_stream_writable.js":60}],69:[function(require,module,exports){
+(function (Buffer){
+"use strict";
+
+var util = require ("util");
+var stream = require ("stream");
+
+module.exports.createReadStream = function (object, options){
+	return new MultiStream (object, options);
+};
+
+var MultiStream = function (object, options){
+	if (object instanceof Buffer || typeof object === "string"){
+		options = options || {};
+		stream.Readable.call (this, {
+			highWaterMark: options.highWaterMark,
+			encoding: options.encoding
+		});
+	}else{
+		stream.Readable.call (this, { objectMode: true });
+	}
+	this._object = object;
+};
+
+util.inherits (MultiStream, stream.Readable);
+
+MultiStream.prototype._read = function (){
+	this.push (this._object);
+	this._object = null;
+};
+}).call(this,require("buffer").Buffer)
+},{"buffer":10,"stream":25,"util":28}],70:[function(require,module,exports){
 (function (process){
 var Stream = require('stream')
 

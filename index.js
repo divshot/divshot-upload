@@ -1,6 +1,7 @@
 var request = require('hyperquest');
 var through = require('through');
 var jsonstream = require('JSONStream');
+var through = require('through');
 
 var uploadComplete = require('./lib/upload_complete');
 var finalizeBuild = require('./lib/finalize_build');
@@ -30,10 +31,12 @@ var upload = function (options) {
     stream.emit('message', 'Build created');
     stream.emit('message', 'Deploying build ... ');
     
+    var req = request(build.loadpoint[fileTypes[fileType]], defaultXhrOptions(build));
+    
     stream
       
       // send file to server
-      .pipe(request(build.loadpoint[fileTypes[fileType]], defaultXhrOptions(build)))
+      .pipe(req)
       
       // split the server response by new line
       .pipe(jsonstream.parse())
