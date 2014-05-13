@@ -52,7 +52,6 @@
     "hyperquest": "~0.3.0",
     "is-node": "0.0.0",
     "readable-stream": "~1.1.10",
-    "streamifier": "~0.1.0",
     "through": "~2.3.4"
   }
 }
