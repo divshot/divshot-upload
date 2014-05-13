@@ -4,15 +4,11 @@
   "description": "Upload app files to Divshot",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test-server && npm run test-browser",
-    "test-server": "node_modules/.bin/mocha --reporter spec test/server/**/*.js",
-    "test-browser": "node_modules/.bin/testling | node_modules/.bin/tspec",
-    "build": "npm run bundle-directive",
-    "bundle": "node_modules/.bin/browserify test/browser/app.js -s upload > test/browser/bundle.js",
-    "bundle-debug": "node_modules/.bin/browserify test/browser/app.js -s upload -d > test/browser/bundle.js",
+    "test": "echo 1",
+    "build": "npm run bundle-directive && npm run ngmin-directive && npm run minify-directive",
     "bundle-directive": "browserify lib/browser/angular-directive.js > dist/upload.directive.js",
-    "minify-directive": "echo 'hey'",
-    "bundle-directive-test": "node_modules/.bin/browserify lib/browser/angular-directive.js -d > test/browser/upload.directive.js"
+    "ngmin-directive": "ngmin dist/upload.directive.js dist/upload.directive.min.js",
+    "minify-directive": "uglifyjs dist/upload.directive.min.js -o dist/upload.directive.min.js --screw-ie8 --mangle"
   },
   "repository": {
     "type": "git",
@@ -26,6 +22,8 @@
   "devDependencies": {
     "browserify": "~4.1.2",
     "grunt": "~0.4.2",
+    "ngmin": "^0.5.0",
+    "uglify-js": "^2.4.13",
     "uglifyjs": "~2.3.6",
     "watchify": "~0.5.4"
   },
