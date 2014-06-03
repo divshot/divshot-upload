@@ -1,6 +1,6 @@
 {
   "name": "divshot-upload",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Upload app files to Divshot",
   "main": "index.js",
   "scripts": {

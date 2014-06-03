@@ -7,7 +7,7 @@ var through = require('through');
 var uploadComplete = require('./lib/upload_complete');
 var finalizeBuild = require('./lib/finalize_build');
 var fileTracker = require('./lib/file_tracker');
-var api = require('./lib/api');
+var initApi = require('./lib/api');
 
 var fileTypes = {
   tar: 'tar_url',
@@ -19,37 +19,59 @@ var upload = function (options) {
   var fileType = options.type || 'tar';
   var config = options.config;
   var environment = options.environment || 'production';
-  var app = api(options);
-  var files = {};
+  var divshotApi = initApi(options);
+  var app = divshotApi.currentApp;
+  var api = divshotApi.self;
   
   stream.emit('message', 'Creating build ... ');
-  
-  app.builds.create({config: config}, function (err, build) {
-    if (err) return stream.emit('error', 'Failed to initiate deploy: ' + err);
-    if (build && build.status == 401) return stream.emit('error', build);
-    if (!build || !build.loadpoint) return stream.emit('error', 'Failed to create deploy build');
-    
-    stream.emit('message', 'Build created');
-    stream.emit('message', 'Deploying build ... ');
-    
-    var req = request(build.loadpoint[fileTypes[fileType]], defaultXhrOptions(build));
-    
-    stream
-      
-      // send file to server
-      .pipe(req)
-      
-      // split the server response by new line
-      .pipe(jsonstream.parse())
-      
-      // track which files get released and which fail
-      .on('data', fileTracker(stream, files))
-      
-      // // end
-      .on('end', uploadComplete(stream, files, finalizeBuild(stream, app, build, environment)))
-  });
+  deploy(config);
   
   return stream;
+  
+  function deploy (config) {
+    var files = {};
+    
+    app.builds.create({config: config}, function (err, build) {
+      if (err) return stream.emit('error', 'Failed to initiate deploy: ' + err);
+      
+      // App doesn't exist, create it
+      if (typeof build === 'string' && build.toLowerCase().indexOf('not found') > -1) return createAppBeforeBuild(config);
+      
+      if (build && build.status == 401) return stream.emit('error', build);
+      if (!build || !build.loadpoint) return stream.emit('error', 'Failed to deploy application. Please try again.');
+      
+      stream.emit('message', 'Build created');
+      stream.emit('message', 'Deploying build ... ');
+      
+      var req = request(build.loadpoint[fileTypes[fileType]], defaultXhrOptions(build));
+      
+      stream
+        
+        // send file to server
+        .pipe(req)
+        
+        // split the server response by new line
+        .pipe(jsonstream.parse())
+        
+        // track which files get released and which fail
+        .on('data', fileTracker(stream, files))
+        
+        // // end
+        .on('end', uploadComplete(stream, files, finalizeBuild(stream, app, build, environment)))
+    });
+  }
+  
+  function createAppBeforeBuild (config) {
+    api.apps.create(config.name.toLowerCase(), function (err, response, body) {
+      if (err) return stream.emit('error', err);
+      if (response.error === 'invalid_token') return stream.emit('error', 'You need to be logged in before you can deploy.');
+      if (body.error) return stream.emit('error', body.error);
+      if (response.statusCode >= 400) return stream.emit('error', body.error);
+      
+      stream.emit('message', config.name + ' has been created');
+      deploy(config);
+    });
+  }
 };
 
 function defaultXhrOptions (build) {
@@ -81,7 +103,11 @@ module.exports = function (options) {
   if (options.host) apiOptions.host = options.host;
   
   var api = new Divshot(apiOptions);
-  return api.apps.id(options.config.name);
+  
+  return {
+    self: api,
+    currentApp: api.apps.id(options.config.name)
+  };
 };
 },{"divshot-api":30,"is-node":55}],3:[function(require,module,exports){
 var upload = require('../../index.js');
