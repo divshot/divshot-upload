@@ -1,7 +1,6 @@
 var request = require('hyperquest');
 var through = require('through');
 var jsonstream = require('JSONStream');
-var through = require('through');
 
 var uploadComplete = require('./lib/upload_complete');
 var finalizeBuild = require('./lib/finalize_build');
@@ -28,7 +27,7 @@ var upload = function (options) {
   return stream;
   
   function deploy (config) {
-    var files = {};
+    var files = options.files || {};
     
     app.builds.create({config: config}, function (err, build) {
       if (err) return stream.emit('error', 'Failed to initiate deploy: ' + err);

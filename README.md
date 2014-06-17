@@ -38,7 +38,8 @@ var uploadOptions = {
   config: {
     name: 'uploadapp',
     root: './'
-  }
+  },
+  files: {}
 };
 
 fileStream
@@ -145,6 +146,7 @@ angular.modules('myApp')
   * `type` - type of file to upload (**tar** or **zip** only for now)
   * `config` - application configuration (taken from the *divshot.json* file)
   * `host` - OPTIONAL - the divshot api endpoint (Used for dev, test, and production environments). Defaults to production api.
+  * `files` - OPTIONAL. an object of files where the key of each item is the relative path to the file and the value is an empty object. This is used to track unreleased files.
   
 ### Events
 
